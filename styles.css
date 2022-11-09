@@ -2,3 +2,12 @@ body {
     max-width: 500px;
     margin: 0 auto;
 }
+
+table {
+    table-layout: fixed;
+    border: 2px solid #000;
+}
+
+thead {
+    background-color: #e7e7e7;
+}

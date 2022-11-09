@@ -1,7 +1,30 @@
+/**
+ * Used to specify a range of integers. Useful for setting difficulty levels.
+ */
+class IntRange {
+    /**
+     * @param min {Number} (inclusive)
+     * @param max {Number} (exclusive)
+     * @param step {Number} (default 1)
+     */
+    constructor(min, max, step = 1) {
+        this.min = min;
+        this.max = max;
+        this.step = step;
+    }
+
+    /**
+     * @returns {number} random number in range
+     */
+    randomValue() {
+        return Math.floor(Math.random() * (this.max - this.min) / this.step) * this.step + this.min;
+    }
+}
+
 class AddQuestion {
-    constructor() {
-        this.a = Math.floor(Math.random() * 10);
-        this.b = Math.floor(Math.random() * 10);
+    constructor(a, b) {
+        this.a = a;
+        this.b = b;
         this.answer = this.a + this.b;
     }
 
@@ -15,11 +38,12 @@ class AddQuestion {
 }
 
 class Arithmetic {
-    constructor(questionElement) {
+    constructor(aIntRange, bIntRange, questionElement) {
+        this.aIntRange = aIntRange;
+        this.bIntRange = bIntRange;
         this.questionElement = questionElement;
-        this.numCorrect = 0;
-        this.numIncorrect = 0;
-        this.question = new AddQuestion();
+        this.numAnswered = 0;
+        this.question = new AddQuestion(this.aIntRange.randomValue(), this.bIntRange.randomValue());
         this.renderQuestion();
     }
 
@@ -29,18 +53,20 @@ class Arithmetic {
      */
     answerQuestion(answer) {
         if (this.question.checkAnswer(answer)) {
-            this.numCorrect++;
+            this.numAnswered++;
             this.nextQuestion();
+            if (this.numAnswered === 1) {
+                this.startTime = Date.now();
+            }
             return true;
         } else {
-            this.numIncorrect++;
             return false;
         }
 
     }
 
     nextQuestion() {
-        this.question = new AddQuestion();
+        this.question = new AddQuestion(this.aIntRange.randomValue(), this.bIntRange.randomValue());
         this.renderQuestion();
     }
 
@@ -48,29 +74,33 @@ class Arithmetic {
         this.questionElement.innerText = this.question.toString();
     }
 
-    get percentCorrect() {
-        return Math.floor(this.numCorrect / (this.numCorrect + this.numIncorrect) * 100);
+    /**
+     * @returns {number} milliseconds per question. Timer starts when first question is answered.
+     */
+    getAvgTimePerQuestion() {
+        if (this.numAnswered === 0) {
+            return 0;
+        }
+        return Math.floor((Date.now() - this.startTime) / this.numAnswered);
     }
 
 }
 
 
 const answerInput = document.getElementById('answer');
-const submitButton = document.getElementById('submit');
 const scoreTable = {
-    "numCorrect": document.getElementById('numCorrect'),
-    "numIncorrect": document.getElementById('numIncorrect'),
-    "percentCorrect": document.getElementById("percentCorrect"),
+    "numAnswered": document.getElementById('numAnswered'),
+    "avgTimePerQuestion": document.getElementById('avgTimePerQuestion'),
 }
 
 function updateScoreTable(arithmetic) {
-    scoreTable.numCorrect.innerText = arithmetic.numCorrect;
-    scoreTable.numIncorrect.innerText = arithmetic.numIncorrect;
-    scoreTable.percentCorrect.innerText = arithmetic.percentCorrect.toString();
+    scoreTable.numAnswered.innerText = arithmetic.numAnswered;
+    scoreTable.avgTimePerQuestion.innerText = arithmetic.getAvgTimePerQuestion();
 }
 
+
 const questionElement = document.getElementById('questionText');
-const arithmetic = new Arithmetic(questionElement);
+const arithmetic = new Arithmetic(new IntRange(1, 101), new IntRange(1, 101), questionElement);
 
 answerInput.addEventListener('input', () => {
     if (arithmetic.answerQuestion(answerInput.value)) {

@@ -23,13 +23,20 @@ class Arithmetic {
         this.renderQuestion();
     }
 
+    /**
+     * @param answer {number} The answer to check
+     * @returns {boolean} is correct?
+     */
     answerQuestion(answer) {
         if (this.question.checkAnswer(answer)) {
             this.numCorrect++;
+            this.nextQuestion();
+            return true;
         } else {
             this.numIncorrect++;
+            return false;
         }
-        this.nextQuestion();
+
     }
 
     nextQuestion() {
@@ -56,17 +63,18 @@ const scoreTable = {
     "percentCorrect": document.getElementById("percentCorrect"),
 }
 
-const questionElement = document.getElementById('questionText');
-const arithmetic = new Arithmetic(questionElement);
-
-submitButton.addEventListener('click', () => {
-    arithmetic.answerQuestion(answerInput.value);
-    arithmetic.nextQuestion();
-
-    // update the score table
+function updateScoreTable(arithmetic) {
     scoreTable.numCorrect.innerText = arithmetic.numCorrect;
     scoreTable.numIncorrect.innerText = arithmetic.numIncorrect;
     scoreTable.percentCorrect.innerText = arithmetic.percentCorrect.toString();
+}
 
+const questionElement = document.getElementById('questionText');
+const arithmetic = new Arithmetic(questionElement);
 
+answerInput.addEventListener('input', () => {
+    if (arithmetic.answerQuestion(answerInput.value)) {
+        answerInput.value = "";
+        updateScoreTable(arithmetic);
+    }
 });

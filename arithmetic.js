@@ -29,7 +29,7 @@ class AddQuestion {
     }
 
     checkAnswer(answer) {
-        return this.answer == answer;
+        return this.answer === Number(answer);
     }
 
     toString() {
@@ -108,3 +108,8 @@ answerInput.addEventListener('input', () => {
         updateScoreTable(arithmetic);
     }
 });
+
+// TODO: add ability to customize difficulty level
+// TODO: ability to choose operation
+// TODO: fixed time limit
+// TODO: multiplayer

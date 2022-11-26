@@ -21,11 +21,35 @@ class IntRange {
     }
 }
 
-class AddQuestion {
-    constructor(a, b) {
+/**
+ * represents an operator
+ */
+class Operator {
+    /**
+     * @param symbol {String}
+     * @param func {Function}
+     */
+    constructor(symbol, func) {
+        this.symbol = symbol;
+        this.func = func;
+    }
+
+    toString() {
+        return this.symbol;
+    }
+}
+
+class Question {
+    /**
+     * @param a {Number}
+     * @param b {Number}
+     * @param operator {Operator}
+     */
+    constructor(a, b, operator) {
         this.a = a;
         this.b = b;
-        this.answer = this.a + this.b;
+        this.operator = operator;
+        this.answer = this.operator.func(a, b);
     }
 
     checkAnswer(answer) {
@@ -33,17 +57,27 @@ class AddQuestion {
     }
 
     toString() {
-        return `${this.a} + ${this.b} = `;
+        return `${this.a} ${this.operator} ${this.b} = `;
     }
 }
 
+/**
+ * holds the main logic of the game
+ */
 class Arithmetic {
-    constructor(aIntRange, bIntRange, questionElement) {
+    /**
+     * @param aIntRange {IntRange}
+     * @param bIntRange {IntRange}
+     * @param questionElement {HTMLElement}
+     * @param operator {Operator}
+     */
+    constructor(aIntRange, bIntRange, questionElement, operator) {
         this.aIntRange = aIntRange;
         this.bIntRange = bIntRange;
         this.questionElement = questionElement;
         this.numAnswered = 0;
-        this.question = new AddQuestion(this.aIntRange.randomValue(), this.bIntRange.randomValue());
+        this.operator = operator;
+        this.question = new Question(this.aIntRange.randomValue(), this.bIntRange.randomValue(), this.operator);
         this.renderQuestion();
     }
 
@@ -66,7 +100,7 @@ class Arithmetic {
     }
 
     nextQuestion() {
-        this.question = new AddQuestion(this.aIntRange.randomValue(), this.bIntRange.randomValue());
+        this.question = new Question(this.aIntRange.randomValue(), this.bIntRange.randomValue(), this.operator);
         this.renderQuestion();
     }
 
@@ -83,33 +117,56 @@ class Arithmetic {
         }
         return Math.floor((Date.now() - this.startTime) / this.numAnswered);
     }
-
 }
 
-
+const settingsForm = document.getElementById('settings');
 const answerInput = document.getElementById('answer');
-const scoreTable = {
-    "numAnswered": document.getElementById('numAnswered'),
-    "avgTimePerQuestion": document.getElementById('avgTimePerQuestion'),
-}
-
-function updateScoreTable(arithmetic) {
-    scoreTable.numAnswered.innerText = arithmetic.numAnswered;
-    scoreTable.avgTimePerQuestion.innerText = arithmetic.getAvgTimePerQuestion();
-}
-
-
 const questionElement = document.getElementById('questionText');
-const arithmetic = new Arithmetic(new IntRange(1, 101), new IntRange(1, 101), questionElement);
+
+const scoreTable = {
+    'numAnswered': document.getElementById('numAnswered'),
+    'avgTimePerQuestion': document.getElementById('avgTimePerQuestion'),
+    updateScoreTable(arithmetic) {
+        this.numAnswered.innerText = arithmetic.numAnswered;
+        this.avgTimePerQuestion.innerText = arithmetic.getAvgTimePerQuestion();
+    }
+}
+
+const operators = {
+    'addition': new Operator('+', (a, b) => a + b),
+    'subtraction': new Operator('-', (a, b) => a - b),
+    'multiplication': new Operator('*', (a, b) => a * b),
+    'division': new Operator('/', (a, b) => a / b),
+}
+
+
+let arithmetic = new Arithmetic(new IntRange(1, 101),
+    new IntRange(1, 101),
+    questionElement,
+    new Operator('+', (a, b) => a + b));
+
+settingsForm.addEventListener('submit', (event) => {
+    event.preventDefault();
+
+    const data = new FormData(settingsForm);
+    let min = Number(data.get('min'));
+    let max = Number(data.get('max'));
+    arithmetic = new Arithmetic(new IntRange(min, max + 1), new IntRange(min, max + 1), questionElement, operators[data.get('operator')]);
+});
 
 answerInput.addEventListener('input', () => {
     if (arithmetic.answerQuestion(answerInput.value)) {
-        answerInput.value = "";
-        updateScoreTable(arithmetic);
+        answerInput.value = '';
     }
 });
 
+setInterval(() => {
+    scoreTable.updateScoreTable(arithmetic);
+}, 1000);
+
+// TODO: timer
+// TODO: operation checkbox (ability to choose multiple)
 // TODO: add ability to customize difficulty level
-// TODO: ability to choose operation
-// TODO: fixed time limit
-// TODO: multiplayer
+// TODO: time limit
+// TODO: multiplayer. 2 players 1v1 sounds funS
+

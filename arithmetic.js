@@ -39,13 +39,14 @@ class Operator {
     }
 }
 
-class Question {
+class BinaryQuestion {
     /**
+     * @param operator {Operator}
      * @param a {Number}
      * @param b {Number}
-     * @param operator {Operator}
      */
-    constructor(a, b, operator) {
+
+    constructor(operator, a, b) {
         this.a = a;
         this.b = b;
         this.operator = operator;
@@ -61,24 +62,37 @@ class Question {
     }
 }
 
+
+class QuestionGenerator {
+    /**
+     * @param operator {Operator}
+     * @param aIntRange {IntRange}
+     * @param bIntRange {IntRange}
+     */
+    constructor(operator, aIntRange, bIntRange) {
+        this.operator = operator;
+        this.aIntRange = aIntRange;
+        this.bIntRange = bIntRange;
+    }
+
+    generateQuestion() {
+        return new BinaryQuestion(this.operator, this.aIntRange.randomValue(), this.bIntRange.randomValue());
+    }
+}
+
 /**
  * holds the main logic of the game
  */
 class Arithmetic {
     /**
-     * @param aIntRange {IntRange}
-     * @param bIntRange {IntRange}
      * @param questionElement {HTMLElement}
-     * @param operator {Operator}
+     * @param questionGenerator {QuestionGenerator}
      */
-    constructor(aIntRange, bIntRange, questionElement, operator) {
-        this.aIntRange = aIntRange;
-        this.bIntRange = bIntRange;
+    constructor(questionElement, questionGenerator) {
         this.questionElement = questionElement;
+        this.questionGenerator = questionGenerator;
         this.numAnswered = 0;
-        this.operator = operator;
-        this.question = new Question(this.aIntRange.randomValue(), this.bIntRange.randomValue(), this.operator);
-        this.renderQuestion();
+        this.nextQuestion();
     }
 
     /**
@@ -100,7 +114,7 @@ class Arithmetic {
     }
 
     nextQuestion() {
-        this.question = new Question(this.aIntRange.randomValue(), this.bIntRange.randomValue(), this.operator);
+        this.question = this.questionGenerator.generateQuestion();
         this.renderQuestion();
     }
 
@@ -140,10 +154,8 @@ const operators = {
 }
 
 
-let arithmetic = new Arithmetic(new IntRange(1, 101),
-    new IntRange(1, 101),
-    questionElement,
-    new Operator('+', (a, b) => a + b));
+let arithmetic = new Arithmetic(questionElement,
+    new QuestionGenerator(operators.addition, new IntRange(0, 10), new IntRange(0, 10)));
 
 settingsForm.addEventListener('submit', (event) => {
     event.preventDefault();
@@ -151,7 +163,8 @@ settingsForm.addEventListener('submit', (event) => {
     const data = new FormData(settingsForm);
     let min = Number(data.get('min'));
     let max = Number(data.get('max'));
-    arithmetic = new Arithmetic(new IntRange(min, max + 1), new IntRange(min, max + 1), questionElement, operators[data.get('operator')]);
+    arithmetic = new Arithmetic(questionElement,
+        new QuestionGenerator(operators[data.get('operator')], new IntRange(min, max), new IntRange(min, max)));
 });
 
 answerInput.addEventListener('input', () => {

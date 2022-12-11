@@ -62,21 +62,135 @@ class BinaryQuestion {
     }
 }
 
+//
+// /**
+//  * Abstract class for a question generator
+//  *
+//  */
+// class QuestionGenerator {
+//     /**
+//      * @abstract
+//      */
+//     constructor() {
+//         if (this.constructor === QuestionGenerator) {
+//             throw new TypeError('Abstract class "QuestionGenerator" cannot be instantiated directly.');
+//         }
+//     }
+//
+//     /**
+//      * @abstract
+//      */
+//     generateRandomQuestion() {
+//         throw new TypeError('Method "generateQuestion" must be implemented.');
+//     }
+// }
 
-class QuestionGenerator {
+
+class Question {
     /**
-     * @param operator {Operator}
-     * @param aIntRange {IntRange}
-     * @param bIntRange {IntRange}
+     * @param question {String}
+     * @param answer {Number}
      */
-    constructor(operator, aIntRange, bIntRange) {
-        this.operator = operator;
+    constructor(question, answer) {
+        this.question = question;
+        this.answer = answer;
+    }
+
+    /**
+     * @param answer {Number|String}
+     * @returns {Boolean}
+     */
+    checkAnswer(answer) {
+        return this.answer === Number(answer);
+    }
+
+    toString() {
+        return this.question;
+    }
+}
+
+// class BinaryQuestionGenerator {
+//     constructor(operator, aIntRange, bIntRange) {
+//         this.operator = operator;
+//         this.aIntRange = aIntRange;
+//         this.bIntRange = bIntRange;
+//     }
+//
+//     generateRandomQuestion() {
+//         return new Question();
+//     }
+// }
+
+class AdditionQuestionGenerator {
+    constructor(aIntRange, bIntRange) {
         this.aIntRange = aIntRange;
         this.bIntRange = bIntRange;
     }
 
-    generateQuestion() {
-        return new BinaryQuestion(this.operator, this.aIntRange.randomValue(), this.bIntRange.randomValue());
+    generateRandomQuestion() {
+        let a = this.aIntRange.randomValue();
+        let b = this.bIntRange.randomValue();
+
+        return new Question(`${a} + ${b} = `, a + b);
+    }
+}
+
+class SubtractionQuestionGenerator {
+    constructor(aIntRange, bIntRange) {
+        this.aIntRange = aIntRange;
+        this.bIntRange = bIntRange;
+    }
+
+    generateRandomQuestion() {
+        let a = this.aIntRange.randomValue();
+        let b = this.bIntRange.randomValue();
+
+        return new Question(`${a} - ${b} = `, a - b);
+    }
+}
+
+class MultiplicationQuestionGenerator {
+    constructor(aIntRange, bIntRange) {
+        this.aIntRange = aIntRange;
+        this.bIntRange = bIntRange;
+    }
+
+    generateRandomQuestion() {
+        let a = this.aIntRange.randomValue();
+        let b = this.bIntRange.randomValue();
+
+        return new Question(`${a} * ${b} = `, a * b);
+    }
+}
+
+class DivisionQuestionGenerator {
+    constructor(aIntRange, bIntRange) {
+        this.aIntRange = aIntRange;
+        this.bIntRange = bIntRange;
+    }
+
+    generateRandomQuestion() {
+        let a = this.aIntRange.randomValue();
+        let b = this.bIntRange.randomValue();
+        let answer = Math.floor((a * 100 / b)) / 100;
+
+        return new Question(`${a} / ${b} = `, answer);
+    }
+
+}
+
+class MultipleQuestionGenerator {
+
+    constructor(questionGenerators) {
+        if (questionGenerators.length === 0) {
+            throw new Error('No question generators specified');
+        }
+        this.questionGenerators = questionGenerators;
+    }
+
+    generateRandomQuestion() {
+        let index = Math.floor(Math.random() * this.questionGenerators.length);
+        return this.questionGenerators[index].generateRandomQuestion();
     }
 }
 
@@ -86,7 +200,7 @@ class QuestionGenerator {
 class Arithmetic {
     /**
      * @param questionElement {HTMLElement}
-     * @param questionGenerator {QuestionGenerator}
+     * @param questionGenerator
      */
     constructor(questionElement, questionGenerator) {
         this.questionElement = questionElement;
@@ -107,14 +221,13 @@ class Arithmetic {
                 this.startTime = Date.now();
             }
             return true;
-        } else {
-            return false;
         }
+        return false;
 
     }
 
     nextQuestion() {
-        this.question = this.questionGenerator.generateQuestion();
+        this.question = this.questionGenerator.generateRandomQuestion();
         this.renderQuestion();
     }
 
@@ -154,17 +267,37 @@ const operators = {
 }
 
 
-let arithmetic = new Arithmetic(questionElement,
-    new QuestionGenerator(operators.addition, new IntRange(0, 10), new IntRange(0, 10)));
+let arithmetic = new Arithmetic(
+    questionElement,
+    new MultipleQuestionGenerator([
+        new AdditionQuestionGenerator(new IntRange(0, 10), new IntRange(0, 10))
+    ])
+);
+
 
 settingsForm.addEventListener('submit', (event) => {
     event.preventDefault();
-
     const data = new FormData(settingsForm);
+
     let min = Number(data.get('min'));
     let max = Number(data.get('max'));
-    arithmetic = new Arithmetic(questionElement,
-        new QuestionGenerator(operators[data.get('operator')], new IntRange(min, max), new IntRange(min, max)));
+    let operators = data.getAll('operator');
+    let questionGenerators = [];
+    if (operators.includes('addition')) {
+        questionGenerators.push(new AdditionQuestionGenerator(new IntRange(min, max), new IntRange(min, max)));
+    }
+    if (operators.includes('subtraction')) {
+        questionGenerators.push(new SubtractionQuestionGenerator(new IntRange(min, max), new IntRange(min, max)));
+    }
+    if (operators.includes('multiplication')) {
+        questionGenerators.push(new MultiplicationQuestionGenerator(new IntRange(min, max), new IntRange(min, max)));
+    }
+    if (operators.includes('division')) {
+        questionGenerators.push(new DivisionQuestionGenerator(new IntRange(min, max), new IntRange(min, max)));
+    }
+    let questionGenerator = new MultipleQuestionGenerator(questionGenerators);
+    arithmetic = new Arithmetic(questionElement, questionGenerator);
+    answerInput.focus();
 });
 
 answerInput.addEventListener('input', () => {
@@ -181,5 +314,5 @@ setInterval(() => {
 // TODO: operation checkbox (ability to choose multiple)
 // TODO: add ability to customize difficulty level
 // TODO: time limit
-// TODO: multiplayer. 2 players 1v1 sounds funS
+// TODO: multiplayer. 2 players 1v1 sounds fun
 

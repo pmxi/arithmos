@@ -21,71 +21,6 @@ class IntRange {
     }
 }
 
-/**
- * represents an operator
- */
-class Operator {
-    /**
-     * @param symbol {String}
-     * @param func {Function}
-     */
-    constructor(symbol, func) {
-        this.symbol = symbol;
-        this.func = func;
-    }
-
-    toString() {
-        return this.symbol;
-    }
-}
-
-class BinaryQuestion {
-    /**
-     * @param operator {Operator}
-     * @param a {Number}
-     * @param b {Number}
-     */
-
-    constructor(operator, a, b) {
-        this.a = a;
-        this.b = b;
-        this.operator = operator;
-        this.answer = this.operator.func(a, b);
-    }
-
-    checkAnswer(answer) {
-        return this.answer === Number(answer);
-    }
-
-    toString() {
-        return `${this.a} ${this.operator} ${this.b} = `;
-    }
-}
-
-//
-// /**
-//  * Abstract class for a question generator
-//  *
-//  */
-// class QuestionGenerator {
-//     /**
-//      * @abstract
-//      */
-//     constructor() {
-//         if (this.constructor === QuestionGenerator) {
-//             throw new TypeError('Abstract class "QuestionGenerator" cannot be instantiated directly.');
-//         }
-//     }
-//
-//     /**
-//      * @abstract
-//      */
-//     generateRandomQuestion() {
-//         throw new TypeError('Method "generateQuestion" must be implemented.');
-//     }
-// }
-
-
 class Question {
     /**
      * @param question {String}
@@ -108,18 +43,6 @@ class Question {
         return this.question;
     }
 }
-
-// class BinaryQuestionGenerator {
-//     constructor(operator, aIntRange, bIntRange) {
-//         this.operator = operator;
-//         this.aIntRange = aIntRange;
-//         this.bIntRange = bIntRange;
-//     }
-//
-//     generateRandomQuestion() {
-//         return new Question();
-//     }
-// }
 
 class AdditionQuestionGenerator {
     constructor(aIntRange, bIntRange) {
@@ -159,7 +82,7 @@ class MultiplicationQuestionGenerator {
         let a = this.aIntRange.randomValue();
         let b = this.bIntRange.randomValue();
 
-        return new Question(`${a} * ${b} = `, a * b);
+        return new Question(`${a} \u00d7 ${b} = `, a * b);
     }
 }
 
@@ -174,9 +97,17 @@ class DivisionQuestionGenerator {
         let b = this.bIntRange.randomValue();
         let answer = Math.floor((a * 100 / b)) / 100;
 
-        return new Question(`${a} / ${b} = `, answer);
+        return new Question(`${a} \u00f7 ${b} = `, answer);
     }
 
+}
+
+
+const questionGenerators = {
+    addition: AdditionQuestionGenerator,
+    subtraction: SubtractionQuestionGenerator,
+    multiplication: MultiplicationQuestionGenerator,
+    division: DivisionQuestionGenerator
 }
 
 class MultipleQuestionGenerator {
@@ -199,7 +130,7 @@ class MultipleQuestionGenerator {
  */
 class Arithmetic {
     /**
-     * @param questionElement {HTMLElement}
+     * @param {HTMLElement} questionElement
      * @param questionGenerator
      */
     constructor(questionElement, questionGenerator) {
@@ -210,7 +141,7 @@ class Arithmetic {
     }
 
     /**
-     * @param answer {number} The answer to check
+     * @param {number} answer The answer to check
      * @returns {boolean} is correct?
      */
     answerQuestion(answer) {
@@ -259,13 +190,6 @@ const scoreTable = {
     }
 }
 
-const operators = {
-    'addition': new Operator('+', (a, b) => a + b),
-    'subtraction': new Operator('-', (a, b) => a - b),
-    'multiplication': new Operator('*', (a, b) => a * b),
-    'division': new Operator('/', (a, b) => a / b),
-}
-
 
 let arithmetic = new Arithmetic(
     questionElement,
@@ -281,21 +205,13 @@ settingsForm.addEventListener('submit', (event) => {
 
     let min = Number(data.get('min'));
     let max = Number(data.get('max'));
-    let operators = data.getAll('operator');
-    let questionGenerators = [];
-    if (operators.includes('addition')) {
-        questionGenerators.push(new AdditionQuestionGenerator(new IntRange(min, max), new IntRange(min, max)));
+    let operatorNames = data.getAll('operator');
+    let questionGeneratorList = [];
+    for (let operatorName of operatorNames) {
+        questionGeneratorList.push(
+            new questionGenerators[operatorName](new IntRange(min, max), new IntRange(min, max)));
     }
-    if (operators.includes('subtraction')) {
-        questionGenerators.push(new SubtractionQuestionGenerator(new IntRange(min, max), new IntRange(min, max)));
-    }
-    if (operators.includes('multiplication')) {
-        questionGenerators.push(new MultiplicationQuestionGenerator(new IntRange(min, max), new IntRange(min, max)));
-    }
-    if (operators.includes('division')) {
-        questionGenerators.push(new DivisionQuestionGenerator(new IntRange(min, max), new IntRange(min, max)));
-    }
-    let questionGenerator = new MultipleQuestionGenerator(questionGenerators);
+    let questionGenerator = new MultipleQuestionGenerator(questionGeneratorList);
     arithmetic = new Arithmetic(questionElement, questionGenerator);
     answerInput.focus();
 });
@@ -309,10 +225,3 @@ answerInput.addEventListener('input', () => {
 setInterval(() => {
     scoreTable.updateScoreTable(arithmetic);
 }, 1000);
-
-// TODO: timer
-// TODO: operation checkbox (ability to choose multiple)
-// TODO: add ability to customize difficulty level
-// TODO: time limit
-// TODO: multiplayer. 2 players 1v1 sounds fun
-

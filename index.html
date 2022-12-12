@@ -7,6 +7,7 @@
     <link rel="stylesheet" href="styles.css">
     <script src="arithmetic.js" defer></script>
 </head>
+
 <body>
 <h1>Arithmetic</h1>
 <p><a href="https://github.com/pmxi/arithmos" target="_blank">source code</a></p>
@@ -29,18 +30,6 @@
         <legend>Settings</legend>
         <fieldset>
             <legend>Operator</legend>
-
-            <!--            <input type="radio" name="operator" id="addition" value="addition" checked>-->
-            <!--            <label for="addition">Addition</label>-->
-
-            <!--            <input type="radio" name="operator" id="subtraction" value="subtraction">-->
-            <!--            <label for="subtraction">Subtraction</label>-->
-
-            <!--            <input type="radio" name="operator" id="multiplication" value="multiplication">-->
-            <!--            <label for="multiplication">Multiplication</label>-->
-
-            <!--            <input type="radio" name="operator" id="division" value="division">-->
-            <!--            <label for="division">Division</label>-->
             <input type="checkbox" name="operator" id="addition" value="addition" checked>
             <label for="addition">Addition</label>
             <input type="checkbox" name="operator" id="subtraction" value="subtraction">
@@ -49,7 +38,6 @@
             <label for="multiplication">Multiplication</label>
             <input type="checkbox" name="operator" id="division" value="division">
             <label for="division">Division</label>
-
         </fieldset>
         <fieldset>
             <legend>Range</legend>
@@ -60,7 +48,6 @@
         </fieldset>
         <button type="submit">Start</button>
     </fieldset>
-
 </form>
 
 <div id="question">
@@ -68,5 +55,6 @@
     <label for="answer"></label>
     <input type="number" id="answer" placeholder="Answer...">
 </div>
+
 </body>
 </html>
